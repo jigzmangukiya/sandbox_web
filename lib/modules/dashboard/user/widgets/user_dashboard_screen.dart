@@ -80,6 +80,7 @@ class _UserDashboardState extends State<UserDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: Text('User Dashboard'),
+        automaticallyImplyLeading: false, // This hides the back button
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())

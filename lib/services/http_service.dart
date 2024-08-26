@@ -6,14 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class HttpService {
   static HttpService? _instance;
 
-  // String prodUrl = "https://prod-platform.follocare.com"; // production url is changed
   String _baseUrl = "https://sandbox-be-poc.iiithcanvas.com";
   String currentUrl = '';
 
   // Private constructor
   HttpService._() {
     currentUrl = _baseUrl;
-
     _loadToken();
   }
 
@@ -30,7 +28,7 @@ class HttpService {
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _authToken = await prefs.getString('authToken');
-    print("auth token" + _authToken.toString());
+    print("auth token: $_authToken");
   }
 
   Future<void> _saveToken(String token) async {
@@ -67,7 +65,7 @@ class HttpService {
     final headers = <String, String>{
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Credentials": "true", // Required for cookies, authorization headers with HTTPS
+      "Access-Control-Allow-Credentials": "true",
       "Access-Control-Allow-Headers": "Origin,C ontent-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
       "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
       if (_authToken != null) 'Authorization': 'Bearer $_authToken',
@@ -135,12 +133,10 @@ class HttpService {
     }
   }
 
-  // Method to set the auth token (e.g., after login)
   Future<void> setAuthToken(String token) async {
     await _saveToken(token);
   }
 
-  // Method to clear the auth token (e.g., after logout)
   Future<void> clearAuthToken() async {
     await _clearToken();
   }
@@ -161,6 +157,49 @@ class HttpService {
       'model_id': modelId,
     };
     return post(endpoint, body: body);
+  }
+
+  Future<dynamic> getPendingRequests() async {
+    try {
+      final response = await get('/user/pending_requests');
+      return response; // Ensure this is a Map<String, dynamic>
+    } catch (error) {
+      throw FetchDataException('Failed to fetch pending requests: $error');
+    }
+  }
+
+  Future<dynamic> getApprovedRequests() async {
+    try {
+      final response = await get('/user/approved_requests');
+      return response; // Ensure this is a Map<String, dynamic>
+    } catch (error) {
+      throw FetchDataException('Failed to fetch approved requests: $error');
+    }
+  }
+
+  Future<dynamic> getAdminDashboard() async {
+    try {
+      final response = await get('/admin/dashboard');
+      return response; // Ensure this is a Map<String, dynamic>
+    } catch (error) {
+      throw FetchDataException('Failed to fetch approved requests: $error');
+    }
+  }
+
+  Future<dynamic> grantAccessToModel(String userId, String modelId, int maxAccesses) async {
+    final endpoint = '/admin/grant_access';
+    final body = {
+      'user_id': userId,
+      'model_id': modelId,
+      'max_accesses': maxAccesses,
+    };
+
+    try {
+      final response = await post(endpoint, body: body);
+      return response; // Return the response or handle it as needed
+    } catch (error) {
+      throw FetchDataException('Failed to grant access: $error');
+    }
   }
 }
 
